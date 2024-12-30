@@ -21,8 +21,12 @@ export default function UserList() {
         setIsLoading(false);
         return;
       }
-
-      const response = await fetch("http://35.229.237.202:38777/api/list", {
+      const protocol = process.env.NEXT_PUBLIC_API_PROTOCOL;
+      const domain = process.env.NEXT_PUBLIC_BACKEND_DOMAIN_NAME;
+      const port = process.env.NEXT_PUBLIC_BACKEND_PORT;
+      const apiPath = "/api/list";
+      const apiUrl = `${protocol}://${domain}:${port}${apiPath}`;
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -60,8 +64,12 @@ export default function UserList() {
         setMessage("未找到 access_token，請先登入");
         return;
       }
-
-      const response = await fetch("http://35.229.237.202:38777/api/addlist", {
+      const protocol = process.env.NEXT_PUBLIC_API_PROTOCOL;
+      const domain = process.env.NEXT_PUBLIC_BACKEND_DOMAIN_NAME;
+      const port = process.env.NEXT_PUBLIC_BACKEND_PORT;
+      const apiPath = "/api/addlist";
+      const apiUrl = `${protocol}://${domain}:${port}${apiPath}`;
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -93,7 +101,12 @@ export default function UserList() {
         return;
       }
 
-      const response = await fetch("http://35.229.237.202:38777/api/deletelist", {
+      const protocol = process.env.NEXT_PUBLIC_API_PROTOCOL;
+      const domain = process.env.NEXT_PUBLIC_BACKEND_DOMAIN_NAME;
+      const port = process.env.NEXT_PUBLIC_BACKEND_PORT;
+      const apiPath = "/api/api/deletelist";
+      const apiUrl = `${protocol}://${domain}:${port}${apiPath}`;
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -58,7 +58,12 @@ export default function Home() {
     try {
       const hashedPassword = hashPassword(formData.password_hash); // 使用 SHA-256 加密密碼
       const encryptedFormData = { ...formData, password_hash: hashedPassword };
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      
+      const protocol = process.env.NEXT_PUBLIC_API_PROTOCOL;
+      const domain = process.env.NEXT_PUBLIC_BACKEND_DOMAIN_NAME;
+      const port = process.env.NEXT_PUBLIC_BACKEND_PORT;
+      const apiPath = "/api/register";
+      const apiUrl = `${protocol}://${domain}:${port}${apiPath}`;
 
       const response = await fetch(apiUrl, {
         method: "POST",
