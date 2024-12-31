@@ -2,7 +2,17 @@ import os
 import re
 from datetime import datetime, timezone, timedelta
 from typing import Optional
+import random
 
+
+async def generate_unique_uid():
+    while True:
+        user_uid = str(random.randint(100000, 999999))
+        exists = await UserModel.filter(user_uid=user_uid).exists()
+        if not exists:
+            return user_uid  # 找到唯一的 UID
+
+        
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -10,6 +20,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from tortoise.contrib.fastapi import register_tortoise
 from tortoise.expressions import Q
+from tortoise.exceptions import IntegrityError
 
 from dotenv import load_dotenv
 
@@ -79,41 +90,60 @@ async def read_root():
     """
     return {"Hello": "World"}
 
-@app.post("/api/register")
-async def register(data :UserRegisterFormData, req: Request):
+@app.post("/api/create_user")
+async def register(data :UserRegisterFormData):
     """
     測試資料庫可否正常存值
     """
-    print(req.headers.get("origin"))
+    try:
+        last_user = await UserModel.all().order_by('-id').first()
+        table_id = 1
+        if last_user is not None:
+            table_id = int(last_user.id) + 1
 
-    if not UserModel.get_or_none(username=data.username):
-        print(f"Username '{data.username}' is already exist")
-        raise HTTPException(status_code=400, detail=f"Username '{data.username}' is already exist")
+        current_timestamp = datetime.now(timezone.utc).isoformat(timespec='seconds')
 
-    if not UserModel.get_or_none(email=data.email):
-        print(f"Email '{data.email}' is already exist")
-        raise HTTPException(status_code=400, detail=f"Email '{data.email}' is already exist")
+        instance = await UserModel.create(
+            id = str(table_id),
+            user_uid = await generate_unique_uid(),
+            username = data.username,
+            email = data.email,
+            password = data.password,
+            name = data.name,
+            created_at = current_timestamp,
+            updated_at = current_timestamp
+        )
 
 
-    instance = await UserModel.create(
-        username = data.username,
-        email = data.email,
-        password_hash = data.password_hash,
-        name = data.name
-    )
+        user_profile_instance = await UserProfileModel.create(
+            id = str(table_id),
+            user = instance,
+        )
 
-    response = JSONResponse(
-        status_code=201,
-        content={
-            "success": True,
-            "message": "Instance created successfully",
-            "data": {"id": instance.id, "username": instance.username},
-        },
-    )
+        response = JSONResponse(
+            status_code=201,
+            content={
+                "success": True,
+                "message": "Instance created successfully",
+                "data": {"id": instance.id, "username": user_profile_instance.id},
+            },
+        )
 
-    return response
+        return response
+    except IntegrityError as e:
+        if "username" in str(e):
+            print(f"Username '{data.username}' is already exist", e)
+            detail = f"Username '{data.username}' is already exist"
+            raise HTTPException(status_code=400, detail=detail)  from e
+        elif "email" in str(e):
+            print(f"Email '{data.email}' is already exist", e)
+            detail = f"Email '{data.email}' is already exist"
+            raise HTTPException(status_code=400, detail=detail)  from e
+        else:
+            print(e)
+            raise HTTPException(status_code=400, detail="Database error") from e
 
-@app.post("/api/login")
+@app.post("/api//login_user")
 async def login(data :UserLoginFormData):
     """
     測試資料庫可否正常存值
@@ -126,9 +156,8 @@ async def login(data :UserLoginFormData):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    password_hash = data.password_hash
-    print(password_hash, user.password_hash)
-    if not password_hash == user.password_hash:
+    password = data.password
+    if not password == user.password:
         print("password wrong...")
         raise HTTPException(status_code=400, detail="password wrong...")
 
@@ -150,14 +179,14 @@ async def login(data :UserLoginFormData):
     return response
 
 
-@app.post("/api/list")
+@app.post("/api/get_lists")
 async def showlist(userid: str = Depends(decode_token)):
     """
     顯示出使用者目前的 清單分配
     """
-    
+
     all_list = await UserListModel.filter(user = userid).values_list("list_name", flat=True)
-    print(all_list)   
+    print(all_list)
 
     response = JSONResponse(
         status_code=200,
@@ -170,7 +199,7 @@ async def showlist(userid: str = Depends(decode_token)):
 
     return response
 
-@app.post("/api/addlist")
+@app.post("/api/create_list")
 async def addlist(data: UserListCreate, userid: str = Depends(decode_token)):
     """
     增加出使用者目前的 清單種類
@@ -194,7 +223,7 @@ async def addlist(data: UserListCreate, userid: str = Depends(decode_token)):
 
     return response
 
-@app.post("/api/deletelist")
+@app.post("/api/delete_list")
 async def deletelist(data: UserListDelete, userid: str = Depends(decode_token)):
     """
     刪除出使用者目前的 清單種類
