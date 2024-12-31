@@ -51,7 +51,7 @@ export default function Login() {
       const protocol = process.env.NEXT_PUBLIC_API_PROTOCOL;
       const domain = process.env.NEXT_PUBLIC_BACKEND_DOMAIN_NAME;
       const port = process.env.NEXT_PUBLIC_BACKEND_PORT;
-      const apiPath = "/api/login";
+      const apiPath = "/api//login_user";
       const apiUrl = `${protocol}://${domain}:${port}${apiPath}`;
 
       // 加密密碼

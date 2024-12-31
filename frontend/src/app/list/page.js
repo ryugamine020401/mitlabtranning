@@ -24,7 +24,7 @@ export default function UserList() {
       const protocol = process.env.NEXT_PUBLIC_API_PROTOCOL;
       const domain = process.env.NEXT_PUBLIC_BACKEND_DOMAIN_NAME;
       const port = process.env.NEXT_PUBLIC_BACKEND_PORT;
-      const apiPath = "/api/list";
+      const apiPath = "/api/get_lists";
       const apiUrl = `${protocol}://${domain}:${port}${apiPath}`;
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -67,7 +67,7 @@ export default function UserList() {
       const protocol = process.env.NEXT_PUBLIC_API_PROTOCOL;
       const domain = process.env.NEXT_PUBLIC_BACKEND_DOMAIN_NAME;
       const port = process.env.NEXT_PUBLIC_BACKEND_PORT;
-      const apiPath = "/api/addlist";
+      const apiPath = "/api/create_list";
       const apiUrl = `${protocol}://${domain}:${port}${apiPath}`;
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -104,7 +104,7 @@ export default function UserList() {
       const protocol = process.env.NEXT_PUBLIC_API_PROTOCOL;
       const domain = process.env.NEXT_PUBLIC_BACKEND_DOMAIN_NAME;
       const port = process.env.NEXT_PUBLIC_BACKEND_PORT;
-      const apiPath = "/api/api/deletelist";
+      const apiPath = "/api/api/delete_list";
       const apiUrl = `${protocol}://${domain}:${port}${apiPath}`;
       const response = await fetch(apiUrl, {
         method: "POST",

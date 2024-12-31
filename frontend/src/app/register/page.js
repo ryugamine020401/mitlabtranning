@@ -62,7 +62,7 @@ export default function Home() {
       const protocol = process.env.NEXT_PUBLIC_API_PROTOCOL;
       const domain = process.env.NEXT_PUBLIC_BACKEND_DOMAIN_NAME;
       const port = process.env.NEXT_PUBLIC_BACKEND_PORT;
-      const apiPath = "/api/register";
+      const apiPath = "/api/create_user";
       const apiUrl = `${protocol}://${domain}:${port}${apiPath}`;
 
       const response = await fetch(apiUrl, {
