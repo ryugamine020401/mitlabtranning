@@ -9,7 +9,7 @@ class UserModel(Model):
     user_uid = fields.CharField(max_length=36, unique=True)
     username = fields.CharField(max_length=30, unique=True)
     email = fields.CharField(max_length=320, unique=True)
-    password_hash = fields.CharField(max_length=255)
+    password = fields.CharField(max_length=255)
     name = fields.CharField(max_length=50, default="user")
     created_at = fields.CharField(max_length=25)
     updated_at = fields.CharField(max_length=36)
