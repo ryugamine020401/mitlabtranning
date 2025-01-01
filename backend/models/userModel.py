@@ -5,8 +5,8 @@ class UserModel(Model):
     """
     用戶表
     """
-    id = fields.CharField(max_length=36, pk=True)
-    user_uid = fields.CharField(max_length=36, unique=True)
+    id = fields.CharField(max_length=36, unique=True)
+    user_uid = fields.CharField(max_length=36, pk=True)
     username = fields.CharField(max_length=30, unique=True)
     email = fields.CharField(max_length=320, unique=True)
     password = fields.CharField(max_length=255)
@@ -30,7 +30,7 @@ class UserProfileModel(Model):
     擴充的 User 資料表
     """
     id = fields.CharField(max_length=36, pk=True)
-    user = fields.ForeignKeyField(
+    f_user_uid = fields.ForeignKeyField(
         "models.UserModel",
         related_name="profiles",
         on_delete=fields.CASCADE
@@ -45,4 +45,4 @@ class UserProfileModel(Model):
         """
         定義資料表名稱
         """
-        table = "user_profiles"
+        table = "profiles"

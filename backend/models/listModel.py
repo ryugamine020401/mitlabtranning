@@ -6,7 +6,7 @@ class UserListModel(Model):
     user自訂清單
     """
     id = fields.CharField(max_length=36, pk=True)
-    user = fields.ForeignKeyField(
+    f_user_uid = fields.ForeignKeyField(
         "models.UserModel", 
         related_name="lists",
         on_delete=fields.CASCADE
@@ -22,7 +22,7 @@ class UserListModel(Model):
         """
         定義資料表名稱
         """
-        table = "user_lists"
+        table = "lists"
 
 class ProductModel(Model):
     """
@@ -58,17 +58,17 @@ class ListPermissionModel(Model):
     閱覽清單的權限
     """
     id = fields.CharField(max_length=36, pk=True)
-    owner_id = fields.ForeignKeyField(
+    f_owner_id = fields.ForeignKeyField(
         "models.UserModel", 
         related_name="permissions_given",
         on_delete=fields.CASCADE
     )
-    viewer_id = fields.ForeignKeyField(
+    f_viewer_id = fields.ForeignKeyField(
         "models.UserModel", 
         related_name="permissions_received",
         on_delete=fields.CASCADE
     )
-    list_id = fields.ForeignKeyField(
+    f_list_id = fields.ForeignKeyField(
         "models.UserListModel", 
         related_name="permissions",
         on_delete=fields.CASCADE
