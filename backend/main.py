@@ -29,6 +29,7 @@ import config
 from schemas.registerSchema import UserRegisterFormData, UserProfileFormData
 from schemas.loginSchema import UserLoginFormData
 from schemas.listSchema import UserListCreate, UserListDelete
+from schemas.productSchema import ProductFormData, getProductFormData, deleteProductFormData
 from models.userModel import UserModel, UserProfileModel
 from models.listModel import ProductModel, UserListModel, ListPermissionModel
 
@@ -62,7 +63,7 @@ def decode_token(token: str = Depends(oauth2_scheme)):
     """
     驗證 JWT Token
     """
-    print(token)
+    # print(token)
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         userid: str = payload.get("sub")
@@ -96,6 +97,7 @@ async def register(data :UserRegisterFormData):
     測試資料庫可否正常存值
     """
     try:
+        print("1")
         last_user = await UserModel.all().order_by('-id').first()
         table_id = 1
         if last_user is not None:
@@ -117,7 +119,7 @@ async def register(data :UserRegisterFormData):
 
         user_profile_instance = await UserProfileModel.create(
             id = str(table_id),
-            user = instance,
+            f_user_uid = instance,
         )
 
         response = JSONResponse(
@@ -143,7 +145,7 @@ async def register(data :UserRegisterFormData):
             print(e)
             raise HTTPException(status_code=400, detail="Database error") from e
 
-@app.post("/api//login_user")
+@app.post("/api/login_user")
 async def login(data :UserLoginFormData):
     """
     測試資料庫可否正常存值
@@ -161,7 +163,7 @@ async def login(data :UserLoginFormData):
         print("password wrong...")
         raise HTTPException(status_code=400, detail="password wrong...")
 
-    token_data = {"sub": str(user.id)}  # 使用用戶的 email 作為 JWT 主體
+    token_data = {"sub": str(user.user_uid)}  # 使用用戶的 email 作為 JWT 主體
     access_token = create_access_token(
         data=token_data, 
         expires_delta=timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
@@ -178,6 +180,43 @@ async def login(data :UserLoginFormData):
 
     return response
 
+@app.post("/api/create_list")
+async def create_product(data: UserListCreate, userid: str = Depends(decode_token)):
+    """
+    創建產品的內容
+    """
+    user_instance = await UserModel.get_or_none(user_uid=userid)
+
+    if not user_instance:
+        print("user not exist")
+        raise HTTPException(status_code=404, detail="user not found")
+
+    last_list = await UserListModel.all().order_by('-id').first()
+
+    table_id = 1
+    if last_list:
+        table_id = int(last_list.id) + 1
+    current_timestamp = datetime.now(timezone.utc).isoformat(timespec='seconds')
+    instance = await UserListModel.create(
+        id = str(table_id),
+        f_user_uid = user_instance,
+        list_name = data.list_name,
+        description = data.description,
+        created_at = current_timestamp,
+    )
+
+
+
+    response = JSONResponse(
+        status_code=200,
+        content={
+            "success": True,
+            "message": "create list successfully",
+            "id": instance.id
+        },
+    )
+
+    return response
 
 @app.post("/api/get_lists")
 async def showlist(userid: str = Depends(decode_token)):
@@ -185,8 +224,10 @@ async def showlist(userid: str = Depends(decode_token)):
     顯示出使用者目前的 清單分配
     """
 
-    all_list = await UserListModel.filter(user = userid).values_list("list_name", flat=True)
-    print(all_list)
+    user_instance = await UserModel.get_or_none(user_uid = userid)
+    all_list = await UserListModel.\
+        filter(f_user_uid = user_instance).values_list("list_name", flat=True)
+
 
     response = JSONResponse(
         status_code=200,
@@ -199,37 +240,13 @@ async def showlist(userid: str = Depends(decode_token)):
 
     return response
 
-@app.post("/api/create_list")
-async def addlist(data: UserListCreate, userid: str = Depends(decode_token)):
-    """
-    增加出使用者目前的 清單種類
-    """
-    user_instance = await UserModel.get_or_none(id=userid)
-    print(data.list_name)
-    instance = await UserListModel.create(
-        user = user_instance,
-        list_name = data.list_name,
-        description = data.description
-    )
-
-    response = JSONResponse(
-        status_code=200,
-        content={
-            "success": True,
-            "message": "login successfully",
-            "list": instance.id
-        },
-    )
-
-    return response
-
 @app.post("/api/delete_list")
 async def deletelist(data: UserListDelete, userid: str = Depends(decode_token)):
     """
     刪除出使用者目前的 清單種類
     """
     user_instance = await UserModel.get_or_none(id=userid)
-    print(data.list_name)
+    # print(data.list_name)
 
     list_instance = await UserListModel.get_or_none(user=user_instance, list_name=data.list_name)
     if not list_instance:
@@ -243,6 +260,102 @@ async def deletelist(data: UserListDelete, userid: str = Depends(decode_token)):
         content={
             "success": True,
             "message": "login successfully",
+        },
+    )
+
+    return response
+
+@app.post("/api/create_product")
+async def addlist(data: ProductFormData, userid: str = Depends(decode_token)):
+    """
+    增加出使用者目前的 清單種類
+    """
+    user_instance = await UserModel.get_or_none(user_uid=userid)
+    list_instance = await UserListModel.get_or_none(
+        f_user_uid=user_instance, 
+        list_name=data.list_name
+    )
+    last_product = await ProductModel.all().order_by('-id').first()
+
+    table_id = 1
+    if last_product:
+        table_id = int(last_product.id) + 1
+    try:
+        instance = await ProductModel.create(
+            id = str(table_id),
+            f_user_uid = user_instance,
+            f_list_uid = list_instance,
+            product_name = data.product_name,
+            product_barcode = data.product_barcode,
+            expiry_date = data.expiry_date,
+            description = data.description,
+            product_image_url = f'http://domainaname/image/product/{str(table_id)}'
+        )
+    except Exception as err:
+        print(f"Error creating product instance: {err}")
+
+    response = JSONResponse(
+        status_code=200,
+        content={
+            "success": True,
+            "message": "create successfully",
+            "list": 2
+        },
+    )
+
+    return response
+
+
+
+@app.post("/api/get_product")
+async def get_product(data: getProductFormData, userid: str = Depends(decode_token)):
+    """
+    顯示出使用者目前的 清單分配
+    """
+    user_instance = await UserModel.get_or_none(user_uid = userid)
+    list_instance = await UserListModel.get_or_none(
+        f_user_uid=user_instance,
+        list_name=data.list_name
+    )
+    all_products = await ProductModel\
+        .filter(f_user_uid = user_instance, f_list_uid = list_instance)\
+        .order_by("expiry_date")\
+        .values_list("id", "product_name", "expiry_date", "product_image_url")
+
+    print(all_products)
+
+    response = JSONResponse(
+        status_code=200,
+        content={
+            "success": True,
+            "message": "login successfully",
+            "product": all_products
+        },
+    )
+
+    return response
+
+
+@app.post("/api/delete_product")
+async def delete_product(data: deleteProductFormData, userid: str = Depends(decode_token)):
+    """
+    顯示出使用者目前的 清單分配
+    """
+    
+    products_instance = await ProductModel.get_or_none(id=data.id)
+
+    if not products_instance:
+        raise HTTPException(status_code=404, detail="not found")
+
+    await products_instance.delete()
+
+
+    response = JSONResponse(
+        status_code=200,
+        content={
+            "success": True,
+            "message": "login successfully",
+            "product": f'{userid} product {data.id} delete successful.'
         },
     )
 
