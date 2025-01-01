@@ -51,7 +51,7 @@ export default function Login() {
       const protocol = process.env.NEXT_PUBLIC_API_PROTOCOL;
       const domain = process.env.NEXT_PUBLIC_BACKEND_DOMAIN_NAME;
       const port = process.env.NEXT_PUBLIC_BACKEND_PORT;
-      const apiPath = "/api//login_user";
+      const apiPath = "/api/login_user";
       const apiUrl = `${protocol}://${domain}:${port}${apiPath}`;
 
       // 加密密碼
@@ -60,7 +60,7 @@ export default function Login() {
       // 構建加密後的數據
       const encryptedFormData = {
         username_or_email: formData.username_or_email,
-        password_hash: hashedPassword,
+        password: hashedPassword,
       };
 
       const response = await fetch(apiUrl, {

@@ -104,7 +104,7 @@ export default function UserList() {
       const protocol = process.env.NEXT_PUBLIC_API_PROTOCOL;
       const domain = process.env.NEXT_PUBLIC_BACKEND_DOMAIN_NAME;
       const port = process.env.NEXT_PUBLIC_BACKEND_PORT;
-      const apiPath = "/api/api/delete_list";
+      const apiPath = "/api/delete_list";
       const apiUrl = `${protocol}://${domain}:${port}${apiPath}`;
       const response = await fetch(apiUrl, {
         method: "POST",

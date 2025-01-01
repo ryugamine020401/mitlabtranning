@@ -7,7 +7,7 @@ export default function Home() {
   const [formData, setFormData] = useState({
     username: "",
     email: "",
-    password_hash: "",
+    password: "",
     name: "",
   });
   const [message, setMessage] = useState("");
@@ -19,7 +19,7 @@ export default function Home() {
   };
 
   const validateForm = () => {
-    const { username, email, password_hash, name } = formData;
+    const { username, email, password, name } = formData;
 
     if (username.length < 3 || username.length > 20) {
       setMessage("使用者名稱需在 3 到 20 個字符之間");
@@ -31,7 +31,7 @@ export default function Home() {
       return false;
     }
 
-    if (password_hash.length < 8) {
+    if (password.length < 8) {
       setMessage("密碼需至少 8 個字符");
       return false;
     }
@@ -56,8 +56,8 @@ export default function Home() {
 
     setIsSubmitting(true);
     try {
-      const hashedPassword = hashPassword(formData.password_hash); // 使用 SHA-256 加密密碼
-      const encryptedFormData = { ...formData, password_hash: hashedPassword };
+      const hashedPassword = hashPassword(formData.password); // 使用 SHA-256 加密密碼
+      const encryptedFormData = { ...formData, password: hashedPassword };
       
       const protocol = process.env.NEXT_PUBLIC_API_PROTOCOL;
       const domain = process.env.NEXT_PUBLIC_BACKEND_DOMAIN_NAME;
@@ -117,8 +117,8 @@ export default function Home() {
             <label className="block text-sm font-medium text-gray-300">密碼</label>
             <input
               type="password"
-              name="password_hash"
-              value={formData.password_hash}
+              name="password"
+              value={formData.password}
               onChange={handleChange}
               required
               className="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-gray-200 shadow-sm focus:border-purple-500 focus:ring-purple-500"
