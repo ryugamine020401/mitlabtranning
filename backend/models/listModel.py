@@ -1,7 +1,7 @@
 from tortoise.models import Model
 from tortoise import fields
 
-class UserListModel(Model):
+class ListModel(Model):
     """
     user自訂清單
     """
@@ -35,7 +35,7 @@ class ProductModel(Model):
         on_delete=fields.CASCADE
     )
     f_list_uid = fields.ForeignKeyField(
-        "models.UserListModel", 
+        "models.ListModel", 
         related_name="products",
         on_delete=fields.CASCADE
     )
@@ -69,7 +69,7 @@ class ListPermissionModel(Model):
         on_delete=fields.CASCADE
     )
     f_list_id = fields.ForeignKeyField(
-        "models.UserListModel", 
+        "models.ListModel", 
         related_name="permissions",
         on_delete=fields.CASCADE
     )

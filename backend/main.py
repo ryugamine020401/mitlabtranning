@@ -31,7 +31,7 @@ from schemas.loginSchema import UserLoginFormData
 from schemas.listSchema import UserListCreate, UserListDelete
 from schemas.productSchema import ProductFormData, getProductFormData, deleteProductFormData
 from models.userModel import UserModel, UserProfileModel
-from models.listModel import ProductModel, UserListModel, ListPermissionModel
+from models.listModel import ProductModel, ListModel, ListPermissionModel
 
 # 加載 .env 檔案
 load_dotenv()
@@ -191,13 +191,13 @@ async def create_product(data: UserListCreate, userid: str = Depends(decode_toke
         print("user not exist")
         raise HTTPException(status_code=404, detail="user not found")
 
-    last_list = await UserListModel.all().order_by('-id').first()
+    last_list = await ListModel.all().order_by('-id').first()
 
     table_id = 1
     if last_list:
         table_id = int(last_list.id) + 1
     current_timestamp = datetime.now(timezone.utc).isoformat(timespec='seconds')
-    instance = await UserListModel.create(
+    instance = await ListModel.create(
         id = str(table_id),
         f_user_uid = user_instance,
         list_name = data.list_name,
@@ -225,7 +225,7 @@ async def showlist(userid: str = Depends(decode_token)):
     """
 
     user_instance = await UserModel.get_or_none(user_uid = userid)
-    all_list = await UserListModel.\
+    all_list = await ListModel.\
         filter(f_user_uid = user_instance).values_list("list_name", flat=True)
 
 
@@ -248,7 +248,7 @@ async def deletelist(data: UserListDelete, userid: str = Depends(decode_token)):
     user_instance = await UserModel.get_or_none(id=userid)
     # print(data.list_name)
 
-    list_instance = await UserListModel.get_or_none(user=user_instance, list_name=data.list_name)
+    list_instance = await ListModel.get_or_none(user=user_instance, list_name=data.list_name)
     if not list_instance:
         raise HTTPException(status_code=404, detail="List not found")
 
@@ -271,7 +271,7 @@ async def addlist(data: ProductFormData, userid: str = Depends(decode_token)):
     增加出使用者目前的 清單種類
     """
     user_instance = await UserModel.get_or_none(user_uid=userid)
-    list_instance = await UserListModel.get_or_none(
+    list_instance = await ListModel.get_or_none(
         f_user_uid=user_instance, 
         list_name=data.list_name
     )
@@ -313,7 +313,7 @@ async def get_product(data: getProductFormData, userid: str = Depends(decode_tok
     顯示出使用者目前的 清單分配
     """
     user_instance = await UserModel.get_or_none(user_uid = userid)
-    list_instance = await UserListModel.get_or_none(
+    list_instance = await ListModel.get_or_none(
         f_user_uid=user_instance,
         list_name=data.list_name
     )
